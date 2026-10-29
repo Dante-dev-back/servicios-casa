@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Servicios de la casa</title>
+<meta name="theme-color" content="#1f6f5c">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Servicios">
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--tx:#1d2420;--mu:#68716b;--ac:#1f6f5c;--ac2:#e3f1ec;--bd:#dedbd2;--in:#faf9f6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a17;--card:#1d2622;--tx:#e8eee9;--mu:#98a39c;--ac:#5fc2a6;--ac2:#1f3a31;--bd:#2f3b35;--in:#17201c}}
+:root[data-theme="dark"]{--bg:#141a17;--card:#1d2622;--tx:#e8eee9;--mu:#98a39c;--ac:#5fc2a6;--ac2:#1f3a31;--bd:#2f3b35;--in:#17201c}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:520px;margin:0 auto;padding:14px 14px 40px}
+h1{font-size:20px;margin:6px 0 2px}
+h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);margin:0 0 10px}
+.sub{color:var(--mu);font-size:14px;margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}
+.row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.row>label{flex:1;font-size:14px}
+.row input,.row select{width:110px;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--in);color:var(--tx);font:inherit;text-align:right}
+.row select{width:auto;flex:1;text-align:left}
+.m{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:6px;align-items:center;margin-bottom:6px}
+.m span{font-size:14px}
+.m input{width:100%;padding:9px 8px;border:1px solid var(--bd);border-radius:9px;background:var(--in);color:var(--tx);font:inherit;text-align:right}
+.hd span{font-size:12px;color:var(--mu);text-align:right}.hd span:first-child{text-align:left}
+.ln{display:flex;justify-content:space-between;padding:5px 0;font-size:14px;border-bottom:1px dashed var(--bd)}
+.ln:last-child{border-bottom:0}
+.ln b{font-variant-numeric:tabular-nums}
+.tot{display:flex;justify-content:space-between;font-size:18px;font-weight:700;margin-top:8px;color:var(--ac)}
+.hl{background:var(--ac2);border-color:var(--ac)}
+.sm{font-size:12px;color:var(--mu);margin:2px 0 8px}
+button{width:100%;padding:13px;border:0;border-radius:11px;background:var(--ac);color:#fff;font:inherit;font-weight:600}
+:root[data-theme="dark"] button{color:#0d1511}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button{color:#0d1511}}
+textarea{width:100%;min-height:150px;padding:10px;border:1px solid var(--bd);border-radius:9px;background:var(--in);color:var(--tx);font:13px/1.4 ui-monospace,Menlo,monospace}
+details summary{cursor:pointer;font-size:14px;color:var(--mu);padding:4px 0}
+.msg{font-size:13px;color:var(--ac);margin-top:8px;min-height:18px}
+</style>
+</head>
+<body>
+<main>
+<h1>Servicios de la casa</h1>
+<p class="sub">Coloca la factura y las lecturas; el resto se calcula solo.</p>
+
+<div class="card">
+  <h2>Mes</h2>
+  <div class="row"><label>Servicios de</label><select id="mes"></select><input id="anio" inputmode="numeric" style="width:78px"></div>
+</div>
+
+<div class="card">
+  <h2>Recibo de luz</h2>
+  <div class="row"><label>Facturación (S/)</label><input id="fac" inputmode="decimal" placeholder="0.00"></div>
+  <div class="row"><label>kWh del recibo</label><input id="kwh" inputmode="decimal" placeholder="0"></div>
+  <div class="sm" id="tarifa"></div>
+</div>
+
+<div class="card">
+  <h2>Lecturas por medidor</h2>
+  <div class="m hd"><span>Medidor</span><span>Inicial</span><span>Final</span></div>
+  <div id="medidores"></div>
+</div>
+
+<div class="card">
+  <h2>Resultado del mes</h2>
+  <div id="res"></div>
+</div>
+
+<div class="card hl">
+  <h2>Cobro al inquilino</h2>
+  <div id="cobro"></div>
+</div>
+
+<div class="card">
+  <h2>Resumen para enviar</h2>
+  <textarea id="txt" readonly></textarea>
+</div>
+
+<div class="card">
+  <button id="guardar">Guardar mes y pasar al siguiente</button>
+  <div class="msg" id="msg"></div>
+</div>
+
+<div class="card">
+  <h2>Historial</h2>
+  <div id="hist"><span class="sm">Aún no hay meses guardados.</span></div>
+</div>
+
+<div class="card">
+  <details>
+    <summary>Valores fijos (cambian pocas veces)</summary>
+    <div style="margin-top:10px" id="fijos"></div>
+  </details>
+</div>
+</main>
+
+<script>
+var MESES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Setiembre","Octubre","Noviembre","Diciembre"];
+var DEF={mes:8,anio:2026,fac:"",kwh:"",
+ med:[{n:"Consultorio",i:"4166",f:""},{n:"Lia",i:"2207",f:""},{n:"Betty",i:"12800",f:""},{n:"Bryan",i:"1081",f:""},{n:"3er piso A",i:"5405",f:""},{n:"3er piso B",i:"3208",f:""}],
+ aguaT:"85.8",aguaB:"0",aguaS:"70",intT:"70",intB:"120",sunT:"45",rentaR:"900",rentaC:"1000",aguaC:"70",sunC:"25",bryanAgua:"8.3"};
+var S,H=[];
+try{var a=localStorage.getItem("sc_state");if(a)S=JSON.parse(a);var b=localStorage.getItem("sc_hist");if(b)H=JSON.parse(b)}catch(e){}
+if(!S||!S.med)S=JSON.parse(JSON.stringify(DEF));
+function save(){try{localStorage.setItem("sc_state",JSON.stringify(S));localStorage.setItem("sc_hist",JSON.stringify(H))}catch(e){}}
+function n(v){var x=parseFloat(String(v).replace(",","."));return isNaN(x)?0:x}
+function f2(x){return x.toLocaleString("es-PE",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function $(id){return document.getElementById(id)}
+
+function build(){
+ $("mes").innerHTML=MESES.map(function(m,i){return '<option value="'+i+'">'+m+'</option>'}).join("");
+ $("mes").value=S.mes;$("anio").value=S.anio;$("fac").value=S.fac;$("kwh").value=S.kwh;
+ $("medidores").innerHTML=S.med.map(function(m,k){return '<div class="m"><span>'+m.n+'</span><input data-k="'+k+'" data-w="i" inputmode="decimal" value="'+m.i+'"><input data-k="'+k+'" data-w="f" inputmode="decimal" placeholder="—" value="'+m.f+'"></div>'}).join("");
+ var fj=[["aguaT","Agua: recibo total"],["aguaB","Agua: parte de Betty"],["aguaS","Agua: parte del inquilino"],["intT","Internet: total"],["intB","Internet: parte de Betty"],["sunT","Sunat: total (se divide a la mitad)"],["rentaR","Renta en el reparto"],["rentaC","Renta que se cobra"],["aguaC","Agua que se cobra"],["sunC","Sunat que se cobra"],["bryanAgua","Agua de Bryan"]];
+ $("fijos").innerHTML=fj.map(function(p){return '<div class="row"><label>'+p[1]+'</label><input data-fx="'+p[0]+'" inputmode="decimal" value="'+S[p[0]]+'"></div>'}).join("");
+}
+
+function calc(){
+ var fac=n(S.fac),kwh=n(S.kwh),tar=kwh>0?fac/kwh:0;
+ $("tarifa").textContent=kwh>0?"Costo por kWh: S/ "+tar.toFixed(4):"Costo por kWh: se calcula al llenar factura y kWh";
+ var luz=S.med.map(function(m){var d=Math.max(n(m.f)-n(m.i),0);return{n:m.n,d:d,c:d*tar}});
+ var L={suarez:luz[0].c,betty:luz[2].c,bryan:luz[3].c,a:luz[4].c,b:luz[5].c};
+ var sun=n(S.sunT)/2;
+ var suarez=L.suarez+n(S.aguaS)+sun+n(S.rentaR);
+ var betty=L.betty+n(S.aguaB)+n(S.intB)+sun;
+ var total=fac+n(S.aguaT)+n(S.intT)+n(S.sunT);
+ var cobro=n(S.rentaC)+n(S.aguaC)+L.suarez+n(S.sunC);
+ var bryan=L.bryan+n(S.bryanAgua);
+ var ln=function(a,b){return '<div class="ln"><span>'+a+'</span><b>S/ '+f2(b)+'</b></div>'};
+ $("res").innerHTML=luz.map(function(l){return ln('Luz '+l.n+' ('+l.d+' kWh)',l.c)}).join("")+
+  '<div class="tot"><span>Betty</span><span>S/ '+f2(betty)+'</span></div>'+
+  '<div class="tot"><span>Inquilino (reparto)</span><span>S/ '+f2(suarez)+'</span></div>'+
+  '<div class="tot"><span>Bryan</span><span>S/ '+f2(bryan)+'</span></div>'+
+  '<div class="sm" style="margin-top:8px">Suma total de servicios del mes: S/ '+f2(total)+'</div>';
+ $("cobro").innerHTML=ln("Renta",n(S.rentaC))+ln("Agua",n(S.aguaC))+ln("Luz ("+luz[0].d+" kWh)",L.suarez)+ln("Sunat",n(S.sunC))+'<div class="tot"><span>Total a cobrar</span><span>S/ '+f2(cobro)+'</span></div>';
+ var mes=MESES[S.mes]+" "+S.anio;
+ $("txt").value="Servicios de "+mes+"\n\nRenta: S/ "+f2(n(S.rentaC))+"\nAgua: S/ "+f2(n(S.aguaC))+"\nLuz ("+luz[0].d+" kWh): S/ "+f2(L.suarez)+"\nSunat: S/ "+f2(n(S.sunC))+"\n\nTotal: S/ "+f2(cobro);
+ return{mes:mes,cobro:cobro,betty:betty,suarez:suarez,fac:fac};
+}
+
+function hist(){
+ if(!H.length)return;
+ $("hist").innerHTML=H.slice().reverse().map(function(h){return '<div class="ln"><span>'+h.mes+'</span><b>Cobro S/ '+f2(h.cobro)+'</b></div>'}).join("");
+}
+
+document.addEventListener("input",function(e){
+ var t=e.target;
+ if(t.id==="mes")S.mes=+t.value;
+ else if(t.id==="anio")S.anio=n(t.value)||S.anio;
+ else if(t.id==="fac")S.fac=t.value;
+ else if(t.id==="kwh")S.kwh=t.value;
+ else if(t.dataset.w)S.med[+t.dataset.k][t.dataset.w]=t.value;
+ else if(t.dataset.fx)S[t.dataset.fx]=t.value;
+ save();calc();
+});
+$("guardar").onclick=function(){
+ if(!n(S.fac)){$("msg").textContent="Falta colocar la facturación del recibo.";return}
+ var r=calc();
+ H=H.filter(function(h){return h.mes!==r.mes});H.push(r);
+ S.med.forEach(function(m){if(m.f!==""){m.i=m.f}m.f=""});
+ S.fac="";S.kwh="";
+ S.mes=(S.mes+1)%12;if(S.mes===0)S.anio+=1;
+ save();build();calc();hist();
+ $("msg").textContent="Guardado “"+r.mes+"”. Las lecturas finales pasaron a ser las iniciales.";
+ window.scrollTo(0,0);
+};
+build();calc();hist();
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+</script>
+</body>
+</html>
